@@ -9,26 +9,23 @@ const socketInit = require("./sockets/socket");
 connectDB();
 const server = http.createServer(app);
 
+// Explicitly include your Vercel URL
 const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:5173",
-  "http://localhost:5174",
-  "https://stranger-talk-five.vercel.app" // Your live Vercel frontend
+  "https://stranger-talk-five.vercel.app", 
+  "http://localhost:5173",
+  "http://localhost:5174"
 ];
 
-// 1. Enable CORS BEFORE anything else
+// CORS for Express HTTP requests
 app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// 2. Explicitly handle OPTIONS preflight requests for all routes
-app.options("*", cors()); 
-
-// 3. Now you can set up Socket.IO and import your routes from app.js
+// Socket.IO setup
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
