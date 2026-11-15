@@ -24,6 +24,7 @@
 require("dotenv").config();
 const http = require("http");
 const { Server } = require("socket.io");
+const cors = require("cors"); // 🔥 1. Import CORS
 const connectDB = require("./config/db");
 const app = require("./app");
 const socketInit = require("./sockets/socket");
@@ -31,12 +32,23 @@ const socketInit = require("./sockets/socket");
 connectDB();
 const server = http.createServer(app);
 
-// 🔥 Allow both the User App (5173) and the Admin App (5174)
+// 🔥 2. Add your live Vercel URL here
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:5173",
   "http://localhost:5174",
+  "https://stranger-talk-five.vercel.app" // Your live Vercel frontend
 ];
 
+// 🔥 3. THIS FIXES THE EXPRESS HTTP ERROR (like /auth/register)
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  })
+);
+
+// This fixes the WebSocket (Socket.IO) connection
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
