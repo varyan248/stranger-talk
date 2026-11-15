@@ -1,0 +1,24 @@
+# Node.js dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+*/dist/
+*/build/
+*/.next/
+
+# Environment variables (CRITICAL - NEVER PUSH THESE)
+.env
+.env.local
+.env.*
+*/.env
+*/.env.local
+*/.env.*
+
+# Logs & OS files
+*.log
+.DS_Store
+Thumbs.db
