@@ -2,10 +2,20 @@ require("dotenv").config();
 const http = require("http");
 const { Server } = require("socket.io");
 const connectDB = require("./config/db");
-const app = require("./app"); // 🔥 This imports app.js
+const app = require("./app"); 
 const socketInit = require("./sockets/socket");
+const User = require("./models/User"); // 🔥 1. Import the User model
 
-connectDB();
+// 🔥 2. Update connectDB to build indexes after connecting
+connectDB().then(async () => {
+  try {
+    await User.createIndexes(); // This forces MongoDB to build the 2dsphere index!
+    console.log("✅ Database indexes built successfully!");
+  } catch (error) {
+    console.error("❌ Error building indexes:", error);
+  }
+});
+
 const server = http.createServer(app);
 
 const allowedOrigins = [
