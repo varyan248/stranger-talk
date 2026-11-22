@@ -1,9 +1,15 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+// 1. Get the base URL from Vercel or default to localhost
+let rawURL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
+// 2. Bulletproof fix: Ensure the URL ALWAYS ends with /api
+if (!rawURL.endsWith('/api')) {
+  rawURL = `${rawURL}/api`
+}
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: rawURL,
   headers: {
     'Content-Type': 'application/json',
   },
