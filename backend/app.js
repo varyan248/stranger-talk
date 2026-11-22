@@ -13,7 +13,28 @@ const allowedOrigins = [
 // 🔥 CORS MUST BE FIRST, BEFORE ROUTES
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+
+      // 1. Allow all localhost addresses
+      if (origin.startsWith('http://localhost:')) {
+        return callback(null, true);
+      }
+
+      // 2. Allow your specific production domain
+      if (origin === 'https://stranger-talk-five.vercel.app') {
+        return callback(null, true);
+      }
+
+      // 3. Allow any URL ending in .vercel.app
+      if (origin.endsWith('.vercel.app')) {
+        return callback(null, true);
+      }
+
+      // Block everything else
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
