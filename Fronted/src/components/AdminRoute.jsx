@@ -14,7 +14,8 @@ const AdminRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  if (user?.role !== 'admin') {
+  // 🔥 FIXED HERE: Check for isAdmin boolean instead of role string
+  if (!user?.isAdmin) {
     return <Navigate to="/nearby" replace />
   }
 
