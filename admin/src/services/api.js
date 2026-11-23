@@ -1,7 +1,12 @@
 import axios from 'axios'
 
+// 🔥 Automatically use the Vercel Environment Variable, and fallback to localhost for local testing
+const baseURL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api` 
+  : 'http://localhost:5000/api'
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: baseURL,
 })
 
 api.interceptors.request.use((config) => {
@@ -12,4 +17,3 @@ api.interceptors.request.use((config) => {
 })
 
 export default api
-
