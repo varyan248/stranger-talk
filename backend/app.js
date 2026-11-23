@@ -1,8 +1,11 @@
 const express = require("express");
-const cors = require("cors"); // 🔥 Bring CORS back here
+const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 
 const app = express();
+
+// 🔥 FIX 1: Trust Railway's proxy so express-rate-limit can read user IPs
+app.set("trust proxy", 1); 
 
 const allowedOrigins = [
   "https://stranger-talk-five.vercel.app",
@@ -27,7 +30,7 @@ app.use(
         return callback(null, true);
       }
 
-      // 3. Allow any URL ending in .vercel.app
+      // 3. Allow any URL ending in .vercel.app (for your Vercel preview links)
       if (origin.endsWith('.vercel.app')) {
         return callback(null, true);
       }
