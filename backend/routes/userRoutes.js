@@ -1,46 +1,3 @@
-// // const router = require("express").Router();
-// // const auth = require("../middleware/authMiddleware");
-// // const {
-// //   updateLocation,
-// //   nearby,
-// //   updateProfile,
-// //   getSettings,
-// //   updateSettings,
-// // } = require("../controllers/userController");
-
-// // router.put("/location", auth, updateLocation);
-// // router.get("/nearby", auth, nearby);
-// // router.put("/profile", auth, updateProfile);
-// // router.get("/settings", auth, getSettings);
-// // router.put("/settings", auth, updateSettings);
-
-// // module.exports = router;
-
-
-// const router = require("express").Router();
-// const auth = require("../middleware/authMiddleware");
-// const {
-//   updateLocation,
-//   nearby,
-//   updateProfile,
-//   getSettings,
-//   updateSettings,
-//   getUserById,
-// } = require("../controllers/userController");
-
-// // ---- Static routes first ----
-// router.put("/location", auth, updateLocation);
-// router.get("/nearby", auth, nearby);
-// router.put("/profile", auth, updateProfile);
-// router.get("/settings", auth, getSettings);
-// router.put("/settings", auth, updateSettings);
-
-// // ---- Dynamic route MUST be last ----
-// // If this were before /nearby, Express would treat "nearby" as a userId
-// router.get("/:userId", auth, getUserById);
-
-// module.exports = router;
-
 const router = require("express").Router();
 const auth = require("../middleware/authMiddleware");
 const multer = require("multer");
@@ -54,22 +11,20 @@ const {
   getSettings,
   updateSettings,
   getUserById,
-  updateAvatar, // We will create this controller next
+  updateAvatar,
 } = require("../controllers/userController");
 
-// 1. Create the uploads folder if it doesn't exist
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
+  fs.mkdirSync(uploadDir, { recursive: true }); // 🔥 Fixed: Added recursive true
 }
 
-// 2. Configure Multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
-    cb(null, `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`);
+    cb(null, `${req.user._id}-${Date.now()}${path.extname(file.originalname)}`);
   },
 });
 
@@ -82,8 +37,9 @@ router.put("/profile", auth, updateProfile);
 router.get("/settings", auth, getSettings);
 router.put("/settings", auth, updateSettings);
 
-// 🔥 NEW AVATAR ROUTE: 'avatar' must match the field name your frontend sends
+// 🔥 Add both POST and PUT for the avatar just to be safe
 router.post("/avatar", auth, upload.single("avatar"), updateAvatar);
+router.put("/avatar", auth, upload.single("avatar"), updateAvatar);
 
 // ---- Dynamic route MUST be last ----
 router.get("/:userId", auth, getUserById);
