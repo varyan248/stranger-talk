@@ -317,3 +317,27 @@ exports.nearby = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.updateAvatar = async (req, res) => {
+  try {
+    // If no file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    // The URL path to save in the database
+    const avatarUrl = `/uploads/${req.file.filename}`;
+
+    // Update the user in the database
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { profilePic: avatarUrl },
+      { new: true }
+    ).select("-password");
+
+    res.status(200).json({ message: "Avatar updated", user });
+  } catch (error) {
+    console.error("Avatar upload error:", error);
+    res.status(500).json({ message: "Server error during upload" });
+  }
+};

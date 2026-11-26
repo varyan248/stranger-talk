@@ -4,6 +4,14 @@ const rateLimit = require("express-rate-limit");
 
 const app = express();
 
+const path = require("path"); // Add this at the top
+
+// ... (existing code)
+app.use(express.json());
+
+// 🔥 Add this to make uploaded images accessible via URL
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // 🔥 FIX 1: Trust Railway's proxy so express-rate-limit can read user IPs
 app.set("trust proxy", 1); 
 
