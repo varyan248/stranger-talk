@@ -166,16 +166,50 @@ const Settings = () => {
     }))
   }
 
-  const saveProfile = async () => {
+  // const saveProfile = async () => {
+  //   setSaving(true)
+  //   try {
+  //     if (avatarFile) {
+  //       const formData = new FormData()
+  //       formData.append('avatar', avatarFile)
+  //       const avatarResponse = await userService.updateAvatar(formData)
+  //       updateUser({ avatar: avatarResponse.data.avatar })
+  //     }
+
+  //     const response = await userService.updateProfile({
+  //       name: profileData.name,
+  //       bio: profileData.bio,
+  //       interests: profileData.interests,
+  //       language: profileData.language,
+  //     })
+
+  //     updateUser(response.data.user)
+  //     toast.success('Profile updated successfully')
+  //   } catch (error) {
+  //     const message = error.response?.data?.message || 'Failed to update profile'
+  //     toast.error(message)
+  //   } finally {
+  //     setSaving(false)
+  //   }
+  // }
+
+    const saveProfile = async () => {
     setSaving(true)
     try {
+      // 1. If a new avatar was selected, upload it
       if (avatarFile) {
         const formData = new FormData()
         formData.append('avatar', avatarFile)
+        
         const avatarResponse = await userService.updateAvatar(formData)
-        updateUser({ avatar: avatarResponse.data.avatar })
+        
+        // 🔥 FIX: Update the context with the full user object returned from the backend
+        if (avatarResponse.data.user) {
+          updateUser(avatarResponse.data.user)
+        }
       }
 
+      // 2. Update the rest of the text fields
       const response = await userService.updateProfile({
         name: profileData.name,
         bio: profileData.bio,
@@ -183,7 +217,13 @@ const Settings = () => {
         language: profileData.language,
       })
 
+      // 🔥 FIX: Update the context again with the final user state
       updateUser(response.data.user)
+      
+      // Clear the local preview so it relies on the new database URL
+      setAvatarPreview(null) 
+      setAvatarFile(null)
+      
       toast.success('Profile updated successfully')
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to update profile'

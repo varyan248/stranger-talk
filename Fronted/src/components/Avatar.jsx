@@ -1,81 +1,55 @@
-import { useState } from 'react'
-import { FiUser } from 'react-icons/fi'
+import React from 'react';
 
-const Avatar = ({ user, size = 'md', showStatus = false, className = '' }) => {
-  const [imageError, setImageError] = useState(false)
+// 🔥 Get the backend URL from your Vercel Environment Variables
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+const Avatar = ({ user, size = 'md', showStatus = false }) => {
   const sizeClasses = {
-    xs: 'w-6 h-6 text-xs',
-    sm: 'w-8 h-8 text-xs',
-    md: 'w-10 h-10 text-sm',
-    lg: 'w-14 h-14 text-lg',
+    sm: 'w-8 h-8 text-sm',
+    md: 'w-10 h-10 text-base',
+    lg: 'w-16 h-16 text-xl',
     xl: 'w-20 h-20 text-2xl',
-    '2xl': 'w-28 h-28 text-4xl',
+    '2xl': 'w-24 h-24 text-3xl',
+  };
+
+  // 🔥 FIX: Build the full URL to the backend image, and add a timestamp to bust the cache
+  let imageUrl = null;
+  if (user?.profilePic) {
+    const baseUrl = user.profilePic.startsWith('http') 
+      ? user.profilePic 
+      : `${API_URL}${user.profilePic}`;
+      
+    // Adding ?t=... forces the browser to download the new image instead of showing the old cached one
+    imageUrl = `${baseUrl}?t=${new Date(user.updatedAt || Date.now()).getTime()}`;
   }
 
-  const getInitials = () => {
-    if (user?.name) {
-      return user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
-    }
-    if (user?.username) {
-      return user.username.slice(0, 2).toUpperCase()
-    }
-    return '?'
-  }
-
-  const getColorFromString = (str) => {
-    if (!str) return 'from-primary-500 to-secondary-500'
-    const colors = [
-      'from-red-500 to-orange-500',
-      'from-orange-500 to-yellow-500',
-      'from-green-500 to-teal-500',
-      'from-blue-500 to-indigo-500',
-      'from-indigo-500 to-purple-500',
-      'from-purple-500 to-pink-500',
-      'from-pink-500 to-red-500',
-    ]
-    let hash = 0
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash)
-    }
-    return colors[Math.abs(hash) % colors.length]
-  }
-
-  const avatarUrl = user?.avatar || user?.profilePicture
+  const initials = user?.name 
+    ? user.name.charAt(0).toUpperCase() 
+    : user?.username?.charAt(0).toUpperCase() || '?';
 
   return (
-    <div className={`relative inline-block ${className}`}>
-      {avatarUrl && !imageError ? (
-        <img
-          src={avatarUrl}
-          alt={user?.username || 'User'}
-          className={`${sizeClasses[size]} rounded-full object-cover border-2 border-dark-700`}
-          onError={() => setImageError(true)}
-        />
-      ) : (
-        <div
-          className={`${sizeClasses[size]} rounded-full bg-gradient-to-br ${getColorFromString(
-            user?.username || user?.name
-          )} flex items-center justify-center font-semibold text-white border-2 border-dark-700`}
-        >
-          {getInitials()}
-        </div>
-      )}
-
+    <div className="relative inline-block">
+      <div className={`${sizeClasses[size] || sizeClasses.md} rounded-full flex items-center justify-center bg-gradient-to-br from-yellow-500 to-orange-600 text-white font-bold overflow-hidden border-2 border-dark-800`}>
+        {imageUrl ? (
+          <img 
+            src={imageUrl} 
+            alt={user?.name || 'User'} 
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to initials if the image fails to load
+              e.target.style.display = 'none';
+              e.target.parentElement.innerText = initials;
+            }}
+          />
+        ) : (
+          initials
+        )}
+      </div>
       {showStatus && (
-        <span
-          className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-dark-800 ${
-            user?.isOnline ? 'bg-online' : 'bg-offline'
-          }`}
-        />
+        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-dark-800 ${user?.online ? 'bg-green-500' : 'bg-gray-500'}`} />
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Avatar
+export default Avatar;
