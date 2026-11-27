@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { chatService } from '../services/chatService'
+import { useSocket } from './SocketContext' // 🔥 1. Import useSocket
 import toast from 'react-hot-toast'
 
 const ChatContext = createContext(null)
@@ -13,12 +14,59 @@ export const useChat = () => {
 }
 
 export const ChatProvider = ({ children }) => {
+  // 🔥 2. Get the socket instance
+  const { socket } = useSocket()
+
   const [conversations, setConversations] = useState([])
   const [activeConversation, setActiveConversation] = useState(null)
   const [messages, setMessages] = useState({})
   const [unreadCounts, setUnreadCounts] = useState({})
   const [loading, setLoading] = useState(false)
   const [typingUsers, setTypingUsers] = useState({})
+
+  // 🔥 3. Listen for real-time profile picture updates
+  useEffect(() => {
+    if (!socket) return
+
+    const handleProfileUpdate = ({ userId, profilePic }) => {
+      setConversations((prevConversations) =>
+        prevConversations.map((convo) => {
+          // Update the participant's picture in the conversation list
+          const updatedParticipants = convo.participants.map((p) => {
+            if (String(p._id) === String(userId)) {
+              return { ...p, profilePic }
+            }
+            return p
+          })
+
+          // Also update the picture in the lastMessage preview (if this user sent it)
+          let updatedLastMessage = convo.lastMessage
+          if (
+            updatedLastMessage &&
+            updatedLastMessage.sender &&
+            String(updatedLastMessage.sender._id) === String(userId)
+          ) {
+            updatedLastMessage = {
+              ...updatedLastMessage,
+              sender: { ...updatedLastMessage.sender, profilePic },
+            }
+          }
+
+          return { 
+            ...convo, 
+            participants: updatedParticipants,
+            lastMessage: updatedLastMessage 
+          }
+        })
+      )
+    }
+
+    socket.on('user-profile-updated', handleProfileUpdate)
+
+    return () => {
+      socket.off('user-profile-updated', handleProfileUpdate)
+    }
+  }, [socket])
 
   const fetchConversations = useCallback(async () => {
     try {
